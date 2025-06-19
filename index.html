@@ -1,62 +1,73 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Monitorizare Pompe</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
       font-family: Arial, sans-serif;
-      background: url('p1.png') no-repeat center center fixed;
+      background-image: url('bg.jpg');
       background-size: cover;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      background-position: center;
+      background-repeat: no-repeat;
       color: white;
-      text-shadow: 1px 1px 2px black;
-    }
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 2rem;
-    }
-    .pump-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 1rem;
-    }
-    .pump {
-      padding: 1rem 2rem;
-      border-radius: 10px;
-      font-size: 1.2rem;
       text-align: center;
-      background-color: #777;
-      opacity: 0.6;
-      pointer-events: none;
     }
-    .pump.active {
-      background-color: #28a745; /* verde */
-      opacity: 1;
-      pointer-events: auto;
-      cursor: pointer;
+
+    h1 {
+      margin-top: 50px;
+      font-size: 3em;
+      text-shadow: 2px 2px 8px #000;
     }
-    a {
+
+    .pompe-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 60px;
+      gap: 30px;
+    }
+
+    .pompa {
+      width: 160px;
+      height: 160px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3em;
+      font-weight: bold;
       text-decoration: none;
+      transition: transform 0.3s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .pompa:hover {
+      transform: scale(1.08);
+    }
+
+    .pompa-verde {
+      background-color: #2ecc71;
       color: white;
+    }
+
+    .pompa-gri {
+      background-color: #7f8c8d;
+      color: #f0f0f0;
     }
   </style>
 </head>
 <body>
   <h1>MONITORIZARE POMPE</h1>
-  <div class="pump-grid">
-    <a href="pompa1.html" class="pump active">Pompa 1</a>
-    <div class="pump">Pompa 2</div>
-    <div class="pump">Pompa 3</div>
-    <div class="pump">Pompa 4</div>
-    <div class="pump">Pompa 5</div>
+
+  <div class="pompe-container">
+    <a href="pompa1.html" class="pompa pompa-verde">Pompa 1</a>
+    <a href="pompa2.html" class="pompa pompa-gri">Pompa 2</a>
+    <a href="pompa3.html" class="pompa pompa-gri">Pompa 3</a>
+    <a href="pompa4.html" class="pompa pompa-gri">Pompa 4</a>
+    <a href="pompa5.html" class="pompa pompa-gri">Pompa 5</a>
   </div>
 </body>
 </html>
