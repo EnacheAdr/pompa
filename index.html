@@ -1,1 +1,62 @@
-
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitorizare Pompe</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: url('p1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      text-shadow: 1px 1px 2px black;
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 2rem;
+    }
+    .pump-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+    }
+    .pump {
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      text-align: center;
+      background-color: #777;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .pump.active {
+      background-color: #28a745; /* verde */
+      opacity: 1;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    a {
+      text-decoration: none;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>MONITORIZARE POMPE</h1>
+  <div class="pump-grid">
+    <a href="pompa1.html" class="pump active">Pompa 1</a>
+    <div class="pump">Pompa 2</div>
+    <div class="pump">Pompa 3</div>
+    <div class="pump">Pompa 4</div>
+    <div class="pump">Pompa 5</div>
+  </div>
+</body>
+</html>
