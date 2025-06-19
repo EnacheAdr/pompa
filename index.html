@@ -19,37 +19,39 @@
 
     body {
       background-image: url('img1.webp');
-      background-size: contain;
+      background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      background-color: black;
+      background-attachment: fixed;
       color: white;
-      text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 2rem 1rem;
+      padding: 0;
       min-height: 100vh;
+      backdrop-filter: brightness(0.5); /* face imaginea de fundal mai întunecată */
     }
 
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 3rem;
-      text-shadow: 3px 3px 10px rgba(0,0,0,0.9);
-      font-weight: bold;
-    }
-
-    .pompe-container {
-      width: 100%;
-      max-width: 350px;
+    .content {
       background-color: rgba(0, 0, 0, 0.5);
       padding: 2rem;
       border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 2rem;
+      text-shadow: 3px 3px 10px rgba(0,0,0,0.9);
+    }
+
+    .pompe-container {
       display: flex;
       flex-direction: column;
-      align-items: center;
       gap: 1rem;
     }
 
@@ -63,6 +65,7 @@
       transition: transform 0.3s, box-shadow 0.3s;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       color: white;
+      text-align: center;
     }
 
     .pompa:hover {
@@ -89,14 +92,15 @@
   </style>
 </head>
 <body>
-  <h1>MONITORIZARE POMPE</h1>
-
-  <div class="pompe-container">
-    <a href="pompa1.html" class="pompa pompa-verde">Pompa 1</a>
-    <a href="#" class="pompa pompa-gri">Pompa 2 (inactiv)</a>
-    <a href="#" class="pompa pompa-gri">Pompa 3 (inactiv)</a>
-    <a href="#" class="pompa pompa-gri">Pompa 4 (inactiv)</a>
-    <a href="#" class="pompa pompa-gri">Pompa 5 (inactiv)</a>
+  <div class="content">
+    <h1>MONITORIZARE POMPE</h1>
+    <div class="pompe-container">
+      <a href="pompa1.html" class="pompa pompa-verde">Pompa 1</a>
+      <a href="#" class="pompa pompa-gri">Pompa 2 (inactiv)</a>
+      <a href="#" class="pompa pompa-gri">Pompa 3 (inactiv)</a>
+      <a href="#" class="pompa pompa-gri">Pompa 4 (inactiv)</a>
+      <a href="#" class="pompa pompa-gri">Pompa 5 (inactiv)</a>
+    </div>
   </div>
 </body>
 </html>
