@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Monitorizare Pompe</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -12,40 +16,53 @@
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+      background-attachment: fixed;
       color: white;
       text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2rem 1rem;
     }
 
     h1 {
-      margin-top: 50px;
-      font-size: 3em;
-      text-shadow: 2px 2px 8px #000;
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
     }
 
     .pompe-container {
       display: flex;
-      justify-content: center;
       flex-wrap: wrap;
-      margin-top: 60px;
-      gap: 30px;
+      justify-content: center;
+      gap: 1.5rem;
+      background-color: rgba(0, 0, 0, 0.4); /* fundal transparent */
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
 
     .pompa {
-      width: 160px;
-      height: 160px;
+      width: 140px;
+      height: 140px;
       border-radius: 15px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.3em;
+      font-size: 1.1rem;
       font-weight: bold;
       text-decoration: none;
-      transition: transform 0.3s;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      padding: 1rem;
     }
 
     .pompa:hover {
-      transform: scale(1.08);
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
     }
 
     .pompa-verde {
@@ -54,8 +71,19 @@
     }
 
     .pompa-gri {
-      background-color: #7f8c8d;
-      color: #f0f0f0;
+      background-color: rgba(127, 140, 141, 0.8); /* gri mai clar și vizibil */
+      color: #ffffff;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+      .pompa {
+        width: 120px;
+        height: 120px;
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
@@ -64,10 +92,10 @@
 
   <div class="pompe-container">
     <a href="pompa1.html" class="pompa pompa-verde">Pompa 1</a>
-    <a href="pompa2.html" class="pompa pompa-gri">Pompa 2</a>
-    <a href="pompa3.html" class="pompa pompa-gri">Pompa 3</a>
-    <a href="pompa4.html" class="pompa pompa-gri">Pompa 4</a>
-    <a href="pompa5.html" class="pompa pompa-gri">Pompa 5</a>
+    <a href="#" class="pompa pompa-gri">Pompa 2<br>(inactiv)</a>
+    <a href="#" class="pompa pompa-gri">Pompa 3<br>(inactiv)</a>
+    <a href="#" class="pompa pompa-gri">Pompa 4<br>(inactiv)</a>
+    <a href="#" class="pompa pompa-gri">Pompa 5<br>(inactiv)</a>
   </div>
 </body>
 </html>
