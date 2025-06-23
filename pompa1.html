@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Status Pompa</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body, html {
       margin: 0;
@@ -18,7 +19,6 @@
       color: white;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
       align-items: center;
     }
 
@@ -83,16 +83,43 @@
     .green { color: #2ecc71; }
     .yellow { color: #f1c40f; }
     .red { color: #e74c3c; }
+
+    .chart-container {
+      width: 90vw;
+      overflow-x: auto;
+      margin-top: 2rem;
+      margin-bottom: 0.5rem;
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 1rem;
+      border-radius: 15px;
+    }
+
+    #chartPerformance {
+      min-width: 1000px;
+      height: 300px;
+    }
+
+    .scroll-hint {
+      font-size: 0.95rem;
+      color: #f1c40f;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
   </style>
 </head>
 <body>
+
+  <div class="chart-container">
+    <canvas id="chartPerformance"></canvas>
+  </div>
+  <div class="scroll-hint">❗ Pentru o vizualizare completă, derulați spre dreapta în grafic.</div>
 
   <div class="rul-section">
     <div class="rul-title" id="rulText">Timp estimat de viață rămas al pompei: ...</div>
 
     <div class="rul-bar-container">
       <div class="rul-bar" id="rulBar">
-        <span class="rul-label" id="rulPerformance">Sănătate actuală a pompei: 77%</span>
+        <span class="rul-label" id="rulPerformance">Sănătate/performanță actuală a pompei: 77%</span>
       </div>
     </div>
 
@@ -100,6 +127,7 @@
   </div>
 
   <script>
+    // ===================== RUL SECTION =====================
     const rulOre = 265;
     const rulProcent = (rulOre / 500) * 100;
     const rulText = document.getElementById("rulText");
@@ -114,7 +142,7 @@
     rulText.innerText = `Timp estimat de viață rămas al pompei: ${ore} ore, ${minute} minute, ${secunde} secunde`;
     rulBar.style.width = `${rulProcent}%`;
 
-    const healthMin = 77; // exemplu: valoarea minimă a performanței (health) din Firebase
+    const healthMin = 77;
     rulLabel.innerText = `Sănătate/performanță actuală a pompei: ${healthMin}%`;
 
     if (rulOre > 300) {
@@ -130,6 +158,58 @@
       rulMessage.classList.add("red");
       rulMessage.innerHTML = "❗ <strong>Avertisment critic: durata de viață a pompei este aproape epuizată.</strong><br> Indicatorii semnalează o deteriorare avansată.<br> Este recomandată oprirea sistemului și efectuarea urgentă a unei intervenții de mentenanță.";
     }
+
+    // ===================== GRAFIC SIMULAT =====================
+    const ctx = document.getElementById('chartPerformance').getContext('2d');
+    const labels = Array.from({ length: 100 }, (_, i) => `Citirea ${i + 1}`);
+    const healthData = labels.map((_, i) => 100 - Math.pow(i / 5, 1.2));
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Sănătate pompa (%)',
+          data: healthData,
+          borderColor: '#00ffcc',
+          backgroundColor: 'rgba(0,255,204,0.1)',
+          tension: 0.3,
+          pointRadius: 3,
+          pointHoverRadius: 6,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            suggestedMin: 60,
+            suggestedMax: 100,
+            ticks: {
+              color: 'white'
+            }
+          },
+          x: {
+            ticks: {
+              color: 'white'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: 'white'
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => `Sănătate: ${context.parsed.y.toFixed(2)}%`
+            }
+          }
+        }
+      }
+    });
   </script>
 
 </body>
