@@ -19,32 +19,25 @@
       width: 100%;
       height: 100%;
       font-family: Arial, sans-serif;
+      overflow: hidden;
     }
 
-    body {
-      background-image: url('imaginea1.webp');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: absolute;
+    .background-wrapper {
+      position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.35);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
       z-index: 0;
     }
 
-    @media (max-width: 600px) {
-      body::before {
-        background-color: rgba(0, 0, 0, 0.2);
-      }
+    .background-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      opacity: 0.85;
     }
 
     .content {
@@ -59,7 +52,6 @@
       text-align: center;
     }
 
-    /* Banner pentru titlu */
     .title-box {
       background-color: rgba(255, 255, 255, 0.15);
       padding: 1rem 2rem;
@@ -128,6 +120,13 @@
   </style>
 </head>
 <body>
+
+  <!-- Fundalul -->
+  <div class="background-wrapper">
+    <img src="imaginea1.webp" alt="Fundal" class="background-img">
+  </div>
+
+  <!-- Conținutul paginii -->
   <div class="content">
     <div class="title-box">
       <h1><span class="emoji">📊</span> MONITORIZARE<br>POMPE</h1>
@@ -141,5 +140,6 @@
       <a href="#" class="pompa pompa-gri">Pompa 5 (inactiv)</a>
     </div>
   </div>
+
 </body>
 </html>
