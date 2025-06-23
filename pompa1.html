@@ -3,25 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pompa 1</title>
+  <title>Status Pompa</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
   <style>
-    html, body {
+    body, html {
       margin: 0;
       padding: 0;
+      font-family: 'Orbitron', sans-serif;
       height: 100%;
-      width: 100%;
-      overflow: hidden;
+      background-image: url('imaginea2.webp');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
     }
 
-    .full-image {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      object-position: center;
+    .rul-section {
+      width: 100%;
+      max-width: 800px;
+      padding: 2rem;
+      background-color: rgba(0, 0, 0, 0.6);
+      border-top: 4px solid #00ffcc;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
+      text-align: center;
     }
+
+    .rul-title {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 6px #00ffcc;
+    }
+
+    .rul-bar-container {
+      width: 100%;
+      height: 30px;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .rul-bar {
+      height: 100%;
+      width: 80%; /* Se va modifica dinamic cu JS */
+      background-color: green; /* Verde, Galben sau Rosu */
+      transition: width 0.8s ease-in-out, background-color 0.8s ease-in-out;
+    }
+
+    .rul-message {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .green { color: #2ecc71; }
+    .yellow { color: #f1c40f; }
+    .red { color: #e74c3c; }
   </style>
 </head>
 <body>
-  <img src="img1.webp" alt="Imagine Pompa 1" class="full-image">
+
+  <div class="rul-section">
+    <div class="rul-title" id="rulText">Timp estimat de viață rămas al pompei: ...</div>
+
+    <div class="rul-bar-container">
+      <div class="rul-bar" id="rulBar"></div>
+    </div>
+
+    <div class="rul-message" id="rulMessage"></div>
+  </div>
+
+  <script>
+    // Exemplu static (inlocuiesti cu valori reale din Firebase)
+    const rulOre = 265; // Ex: rezultat calculat din JS
+    const rulProcent = (rulOre / 500) * 100;
+    const rulText = document.getElementById("rulText");
+    const rulBar = document.getElementById("rulBar");
+    const rulMessage = document.getElementById("rulMessage");
+
+    // Convertim in ore, minute, secunde (optional, aici e simplificat)
+    const ore = Math.floor(rulOre);
+    const minute = Math.floor((rulOre - ore) * 60);
+    const secunde = Math.floor((((rulOre - ore) * 60) - minute) * 60);
+
+    rulText.innerText = `Timp estimat de viață rămas al pompei: ${ore} ore ${minute} minute ${secunde} secunde`;
+    rulBar.style.width = `${rulProcent}%`;
+
+    if (rulOre > 300) {
+      rulBar.style.backgroundColor = "#2ecc71";
+      rulMessage.classList.add("green");
+      rulMessage.innerHTML = "✅ <strong>Pompa funcționează în parametri excelenți.</strong><br> Sistemul indică o performanță ridicată, fără semne evidente de uzură.<br> Nu este necesară nicio intervenție tehnică în acest moment.";
+    } else if (rulOre > 150) {
+      rulBar.style.backgroundColor = "#f1c40f";
+      rulMessage.classList.add("yellow");
+      rulMessage.innerHTML = "⚠️ <strong>Atenție: semne moderate de scădere a performanței.</strong><br> Pompa funcționează, dar eficiența sa a început să scadă.<br> Se recomandă o verificare tehnică pentru prevenirea defectării premature.";
+    } else {
+      rulBar.style.backgroundColor = "#e74c3c";
+      rulMessage.classList.add("red");
+      rulMessage.innerHTML = "❗ <strong>Avertisment critic: durata de viață a pompei este aproape epuizată.</strong><br> Indicatorii semnalează o deteriorare avansată.<br> Este recomandată oprirea sistemului și efectuarea urgentă a unei intervenții de mentenanță.";
+    }
+  </script>
+
 </body>
 </html>
