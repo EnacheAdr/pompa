@@ -38,7 +38,7 @@
       display: inline-block;
       padding: 5px 10px;
       border-radius: 10px;
-      background: #f1c40f;
+      background: #f1c40f; /* default */
       color: #000;
     }
     .health-bar { height: 30px; background: #444; border-radius: 10px; overflow: hidden; margin: 10px 0; position: relative; }
@@ -76,6 +76,7 @@
       <div class="alert" id="healthAlert"></div>
     </div>
   </div>
+
   <script>
     const firebaseConfig = {
       databaseURL: "https://pompa-8dfcb-default-rtdb.firebaseio.com/"
@@ -86,25 +87,21 @@
 
     dbRef.once("value", (snapshot) => {
       const data = snapshot.val();
-      const timestamps = Object.keys(data).sort((a, b) => parseInt(a) - parseInt(b)); // sortare numerică
-      const healthValues = [];
-      const flowValues = [];
-      const currentValues = [];
+      if (!data) return;
 
-      timestamps.forEach((timestamp) => {
-        const entry = data[timestamp];
-        if (entry && typeof entry.health === 'number') {
-          healthValues.push(entry.health);
-          flowValues.push(entry.flow || 0);
-          currentValues.push(entry.current || 0);
-        }
-      });
+      const entries = Object.entries(data)
+        .filter(([_, entry]) => entry && typeof entry.health === 'number')
+        .sort(([a], [b]) => new Date(a) - new Date(b));
 
-      const labels = healthValues.map((_, i) => `Citirea ${i + 1}`);
+      const healthValues = entries.map(([_, entry]) => entry.health);
+      const flowValues = entries.map(([_, entry]) => entry.flow || 0);
+      const currentValues = entries.map(([_, entry]) => entry.current || 0);
+      const labels = entries.map((_, i) => `Citirea ${i + 1}`);
+
       const minValue = Math.min(...healthValues);
       const minIndex = healthValues.indexOf(minValue);
 
-      const timeUsedSeconds = timestamps.length * 30;
+      const timeUsedSeconds = entries.length * 30;
       const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
       const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
 
