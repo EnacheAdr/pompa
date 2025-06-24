@@ -35,11 +35,11 @@
     .health-label {
       font-weight: bold;
       margin-bottom: 8px;
-      color: #000;
-      background: #f1c40f;
       display: inline-block;
       padding: 5px 10px;
       border-radius: 10px;
+      background: #f1c40f; /* default */
+      color: #000;
     }
     .health-bar { height: 30px; background: #444; border-radius: 10px; overflow: hidden; margin: 10px 0; position: relative; }
     .health-bar-fill {
@@ -69,7 +69,7 @@
     <p class="note">⚠ Pentru o vizualizare completă, utilizați bara de derulare de mai sus.</p>
     <div class="life-box">
       <h2 id="timeRemaining">Timp estimat de viață rămas al pompei:</h2>
-      <div class="health-label">Sănătate/performanță actuală a pompei: <span id="currentHealth">--%</span></div>
+      <div class="health-label" id="healthLabel">Sănătate/performanță actuală a pompei: <span id="currentHealth">--%</span></div>
       <div class="health-bar">
         <div class="health-bar-fill" id="healthFill">-- ore</div>
       </div>
@@ -86,17 +86,17 @@
 
     dbRef.once("value", (snapshot) => {
       const data = snapshot.val();
-      const sortedKeys = Object.keys(data);
+      const timestamps = Object.keys(data);
       const healthValues = [];
       const flowValues = [];
       const currentValues = [];
 
-      sortedKeys.forEach((key) => {
-        const entry = data[key];
+      timestamps.forEach((timestamp) => {
+        const entry = data[timestamp];
         if (entry && typeof entry.health === 'number') {
           healthValues.push(entry.health);
-          flowValues.push(entry.flow ?? 0);
-          currentValues.push(entry.current ?? 0);
+          flowValues.push(entry.flow || 0);
+          currentValues.push(entry.current || 0);
         }
       });
 
@@ -104,8 +104,7 @@
       const minValue = Math.min(...healthValues);
       const minIndex = healthValues.indexOf(minValue);
 
-      const totalReadings = sortedKeys.length;
-      const timeUsedSeconds = totalReadings * 30;
+      const timeUsedSeconds = timestamps.length * 30;
       const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
       const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
 
@@ -116,20 +115,29 @@
       document.getElementById("timeRemaining").textContent = `Timp estimat de viață rămas al pompei: ${hours} ore, ${minutes} minute, ${seconds} secunde`;
       document.getElementById("currentHealth").textContent = `${minValue.toFixed(2)}%`;
       const fill = document.getElementById("healthFill");
-      fill.textContent = `${hours} ore`;
+      fill.textContent = `${hours} ore, ${minutes} minute, ${seconds} secunde`;
+
+      const label = document.getElementById("healthLabel");
+      const alert = document.getElementById("healthAlert");
 
       if (remainingSeconds >= 300 * 3600) {
         fill.className = "health-bar-fill green";
-        document.getElementById("healthAlert").className = "alert green-alert";
-        document.getElementById("healthAlert").textContent = "✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă.";
-      } else if (remainingSeconds >= 100 * 3600) {
+        label.style.backgroundColor = '#2ecc71';
+        label.style.color = '#000';
+        alert.className = "alert green-alert";
+        alert.textContent = "✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă.";
+      } else if (remainingSeconds >= 150 * 3600) {
         fill.className = "health-bar-fill yellow";
-        document.getElementById("healthAlert").className = "alert yellow-alert";
-        document.getElementById("healthAlert").textContent = "⚠ Atenție: semne moderate de scădere a performanței. Se recomandă o verificare tehnică.";
+        label.style.backgroundColor = '#f1c40f';
+        label.style.color = '#000';
+        alert.className = "alert yellow-alert";
+        alert.textContent = "⚠ Atenție: semne moderate de scădere a performanței. Se recomandă o verificare tehnică.";
       } else {
         fill.className = "health-bar-fill red";
-        document.getElementById("healthAlert").className = "alert red-alert";
-        document.getElementById("healthAlert").textContent = "❗Avertisment: performanță critică. Necesită întreținere imediată!";
+        label.style.backgroundColor = '#e74c3c';
+        label.style.color = '#fff';
+        alert.className = "alert red-alert";
+        alert.textContent = "❗Avertisment: performanță critică. Necesită întreținere imediată!";
       }
 
       const ctx = document.getElementById('healthChart').getContext('2d');
@@ -138,7 +146,7 @@
         data: {
           labels: labels,
           datasets: [{
-            label: '',
+            label: 'Sănătate pompa (%)',
             data: healthValues,
             fill: false,
             borderColor: '#00ffe6',
