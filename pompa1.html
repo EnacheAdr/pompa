@@ -38,16 +38,10 @@
       display: inline-block;
       padding: 5px 10px;
       border-radius: 10px;
+      background: #f1c40f;
       color: #000;
     }
-    .health-bar {
-      height: 30px;
-      background: #444;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 10px 0;
-      position: relative;
-    }
+    .health-bar { height: 30px; background: #444; border-radius: 10px; overflow: hidden; margin: 10px 0; position: relative; }
     .health-bar-fill {
       height: 100%;
       text-align: center;
@@ -77,12 +71,11 @@
       <h2 id="timeRemaining">Timp estimat de viață rămas al pompei:</h2>
       <div class="health-label" id="healthLabel">Sănătate/performanță actuală a pompei: <span id="currentHealth">--%</span></div>
       <div class="health-bar">
-        <div class="health-bar-fill" id="healthFill">--</div>
+        <div class="health-bar-fill" id="healthFill">-- ore</div>
       </div>
       <div class="alert" id="healthAlert"></div>
     </div>
   </div>
-
   <script>
     const firebaseConfig = {
       databaseURL: "https://pompa-8dfcb-default-rtdb.firebaseio.com/"
@@ -93,14 +86,13 @@
 
     dbRef.once("value", (snapshot) => {
       const data = snapshot.val();
-      const sortedKeys = Object.keys(data).sort((a, b) => Number(a) - Number(b));
-
+      const timestamps = Object.keys(data).sort((a, b) => parseInt(a) - parseInt(b)); // sortare numerică
       const healthValues = [];
       const flowValues = [];
       const currentValues = [];
 
-      sortedKeys.forEach((key) => {
-        const entry = data[key];
+      timestamps.forEach((timestamp) => {
+        const entry = data[timestamp];
         if (entry && typeof entry.health === 'number') {
           healthValues.push(entry.health);
           flowValues.push(entry.flow || 0);
@@ -112,7 +104,7 @@
       const minValue = Math.min(...healthValues);
       const minIndex = healthValues.indexOf(minValue);
 
-      const timeUsedSeconds = sortedKeys.length * 30;
+      const timeUsedSeconds = timestamps.length * 30;
       const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
       const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
 
@@ -122,28 +114,30 @@
 
       document.getElementById("timeRemaining").textContent = `Timp estimat de viață rămas al pompei: ${hours} ore, ${minutes} minute, ${seconds} secunde`;
       document.getElementById("currentHealth").textContent = `${minValue.toFixed(2)}%`;
-
       const fill = document.getElementById("healthFill");
-      fill.textContent = `${hours}h ${minutes}m ${seconds}s`;
+      fill.textContent = `${hours} ore, ${minutes} minute, ${seconds} secunde`;
 
-      const labelBox = document.getElementById("healthLabel");
-      const alertBox = document.getElementById("healthAlert");
+      const label = document.getElementById("healthLabel");
+      const alert = document.getElementById("healthAlert");
 
-      if (hours >= 300) {
+      if (remainingSeconds >= 300 * 3600) {
         fill.className = "health-bar-fill green";
-        labelBox.className = "health-label green";
-        alertBox.className = "alert green-alert";
-        alertBox.textContent = "✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă.";
-      } else if (hours >= 150) {
+        label.style.backgroundColor = '#2ecc71';
+        label.style.color = '#000';
+        alert.className = "alert green-alert";
+        alert.textContent = "✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă.";
+      } else if (remainingSeconds >= 150 * 3600) {
         fill.className = "health-bar-fill yellow";
-        labelBox.className = "health-label yellow";
-        alertBox.className = "alert yellow-alert";
-        alertBox.textContent = "⚠ Atenție: semne moderate de scădere a performanței. Se recomandă o verificare tehnică.";
+        label.style.backgroundColor = '#f1c40f';
+        label.style.color = '#000';
+        alert.className = "alert yellow-alert";
+        alert.textContent = "⚠ Atenție: semne moderate de scădere a performanței. Se recomandă o verificare tehnică.";
       } else {
         fill.className = "health-bar-fill red";
-        labelBox.className = "health-label red";
-        alertBox.className = "alert red-alert";
-        alertBox.textContent = "❗Avertisment: performanță critică. Necesită întreținere imediată!";
+        label.style.backgroundColor = '#e74c3c';
+        label.style.color = '#fff';
+        alert.className = "alert red-alert";
+        alert.textContent = "❗Avertisment: performanță critică. Necesită întreținere imediată!";
       }
 
       const ctx = document.getElementById('healthChart').getContext('2d');
