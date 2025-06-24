@@ -30,7 +30,7 @@
     }
 
     .graf-canvas {
-      min-width: 1200px;
+      min-width: 3000px;
       max-width: none;
     }
 
@@ -135,19 +135,26 @@
   </div>
 
   <script>
+    const healthData = Array.from({length: 500}, (_, i) => 100 - Math.random() * 25);
+    const flowData = Array.from({length: 500}, () => (30 + Math.random() * 8).toFixed(2));
+    const currentData = Array.from({length: 500}, () => (150 + Math.random() * 30).toFixed(2));
+    const minHealth = Math.min(...healthData);
+    const minIndex = healthData.indexOf(minHealth);
+
     const chart = new Chart(document.getElementById('healthChart').getContext('2d'), {
       type: 'line',
       data: {
-        labels: Array.from({length: 100}, (_, i) => `Citirea ${i + 1}`),
+        labels: Array.from({length: 500}, (_, i) => `Citirea ${i + 1}`),
         datasets: [{
           label: 'Sănătate pompa (%)',
-          data: Array.from({length: 100}, (_, i) => 100 - Math.random() * 23),
+          data: healthData,
           borderColor: '#00f7ff',
           backgroundColor: 'rgba(0, 247, 255, 0.1)',
           tension: 0.2,
           pointRadius: 4,
           pointHoverRadius: 6,
           fill: false,
+          pointBackgroundColor: (ctx) => ctx.dataIndex === minIndex ? '#e74c3c' : '#00f7ff'
         }]
       },
       options: {
@@ -161,8 +168,12 @@
           tooltip: {
             callbacks: {
               label: function(context) {
-                const value = context.raw.toFixed(2);
-                return `Sănătate: ${value}%`;
+                const i = context.dataIndex;
+                return [
+                  `Sănătate: ${healthData[i].toFixed(2)}%`,
+                  `Debit: ${flowData[i]} L/h`,
+                  `Curent: ${currentData[i]} mA`
+                ];
               }
             }
           }
