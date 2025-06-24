@@ -34,16 +34,6 @@
       text-shadow: 0 0 10px #000;
     }
 
-    .badge {
-      background: red;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-weight: bold;
-      margin-bottom: 10px;
-      display: inline-block;
-    }
-
     .scroll-container {
       overflow-x: auto;
       padding-bottom: 10px;
@@ -151,7 +141,10 @@
   <div class="container">
     <h1>Pompa 1</h1>
 
-    <div class="badge">● Performanța actuală a pompei</div>
+    <!-- Punct roșu + legendă -->
+    <div style="margin-bottom: 10px; font-weight: bold; color: white;">
+      <span style="color: red; font-size: 20px;">●</span> Sănătate/performanță actuală pompa
+    </div>
 
     <div class="scroll-container">
       <div class="chart-wrapper">
@@ -190,7 +183,7 @@
       labels,
       datasets: [
         {
-          label: '', // am eliminat textul legendei
+          label: '', // legenda scoasă
           data: healthValues,
           fill: false,
           borderColor: '#00ffe6',
