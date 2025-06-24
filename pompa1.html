@@ -86,40 +86,40 @@
 
     dbRef.once("value", (snapshot) => {
       const data = snapshot.val();
-      const entries = Object.entries(data).sort((a, b) => new Date(a[0]) - new Date(b[0]));
-
+      const timestamps = Object.keys(data).sort(); // păstrăm ordinea temporală
+      const labels = [];
       const healthValues = [];
       const flowValues = [];
       const currentValues = [];
-      const labels = [];
 
-      let allHealths = [];
-
-      entries.forEach(([timestamp, entry], i) => {
+      // pentru grafic: ignorăm doar valorile cu null
+      timestamps.forEach((ts, idx) => {
+        const entry = data[ts];
         if (entry && typeof entry.health === 'number') {
-          labels.push(`Citirea ${i + 1}`);
+          labels.push(`Citirea ${idx + 1}`);
           healthValues.push(entry.health);
           flowValues.push(entry.flow || 0);
           currentValues.push(entry.current || 0);
         }
-        if (entry && typeof entry.health === 'number') {
-          allHealths.push(entry.health);
-        }
       });
 
-      const minValue = Math.min(...allHealths);
-      const minIndex = healthValues.indexOf(minValue);
-      const validReadings = entries.filter(([_, entry]) => entry && entry.health !== null);
+      const allHealths = timestamps.map((ts) => {
+        const h = data[ts]?.health;
+        return typeof h === 'number' ? h : null;
+      });
 
-      const timeUsedSeconds = entries.length * 30;
+      const minValue = Math.min(...allHealths.filter(v => v !== null));
+      const minIndex = healthValues.indexOf(minValue);
+
+      const timeUsedSeconds = timestamps.length * 30;
       const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
       const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
-
       const hours = Math.floor(remainingSeconds / 3600);
       const minutes = Math.floor((remainingSeconds % 3600) / 60);
       const seconds = Math.floor(remainingSeconds % 60);
 
-      document.getElementById("timeRemaining").textContent = `Timp estimat de viață rămas al pompei: ${hours} ore, ${minutes} minute, ${seconds} secunde`;
+      document.getElementById("timeRemaining").textContent =
+        `Timp estimat de viață rămas al pompei: ${hours} ore, ${minutes} minute, ${seconds} secunde`;
       document.getElementById("currentHealth").textContent = `${minValue.toFixed(2)}%`;
       const fill = document.getElementById("healthFill");
       fill.textContent = `${hours} ore, ${minutes} minute, ${seconds} secunde`;
@@ -157,9 +157,7 @@
             data: healthValues,
             fill: false,
             borderColor: '#00ffe6',
-            backgroundColor: function(ctx) {
-              return ctx.dataIndex === minIndex ? '#ff0000' : '#00ffe6';
-            },
+            backgroundColor: (ctx) => ctx.dataIndex === minIndex ? '#ff0000' : '#00ffe6',
             pointRadius: 4,
             pointHoverRadius: 6
           }]
@@ -178,14 +176,12 @@
             },
             legend: {
               labels: {
-                generateLabels: function() {
-                  return [{
-                    text: '🔴 Sănătate/performanță actuală a pompei',
-                    fillStyle: '#ff0000',
-                    strokeStyle: '#ff0000',
-                    lineWidth: 1
-                  }];
-                }
+                generateLabels: () => [{
+                  text: '🔴 Sănătate/performanță actuală a pompei',
+                  fillStyle: '#ff0000',
+                  strokeStyle: '#ff0000',
+                  lineWidth: 1
+                }]
               }
             }
           },
