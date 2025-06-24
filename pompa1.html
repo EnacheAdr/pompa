@@ -5,19 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Status Pompa</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
       font-family: 'Orbitron', sans-serif;
       background: url('imaginea2.webp') no-repeat center center fixed;
       background-size: cover;
       color: white;
       overflow-x: hidden;
+      margin: 0;
+      padding: 0;
     }
 
     .container {
@@ -101,17 +99,9 @@
       line-height: 30px;
     }
 
-    .green {
-      background-color: #2ecc71;
-    }
-
-    .yellow {
-      background-color: #f1c40f;
-    }
-
-    .red {
-      background-color: #e74c3c;
-    }
+    .green { background-color: #2ecc71; }
+    .yellow { background-color: #f1c40f; }
+    .red { background-color: #e74c3c; }
 
     .alert {
       margin-top: 15px;
@@ -121,29 +111,17 @@
       font-weight: bold;
     }
 
-    .green-alert {
-      background-color: #2ecc71;
-      color: #000;
-    }
-
-    .yellow-alert {
-      background-color: #f1c40f;
-      color: #000;
-    }
-
-    .red-alert {
-      background-color: #e74c3c;
-      color: #fff;
-    }
+    .green-alert { background-color: #2ecc71; color: #000; }
+    .yellow-alert { background-color: #f1c40f; color: #000; }
+    .red-alert { background-color: #e74c3c; color: #fff; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Pompa 1</h1>
 
-    <!-- Punct roșu + legendă -->
     <div style="margin-bottom: 10px; font-weight: bold; color: white;">
-      <span style="color: red; font-size: 20px;">●</span> Sănătate/performanță actuală pompa
+      <span style="color: red; font-size: 20px;">●</span> Sănătate/performanță actuală a pompei
     </div>
 
     <div class="scroll-container">
@@ -155,96 +133,130 @@
     <p class="note">⚠ Pentru o vizualizare completă, utilizați bara de derulare de mai sus.</p>
 
     <div class="life-box">
-      <h2>Timp estimat de viață rămas al pompei: 265 ore, 0 minute, 0 secunde</h2>
-
-      <div class="health-label">Sănătate/performanță actuală a pompei: <span id="currentHealth">71%</span></div>
-
+      <h2 id="lifeTime">Timp estimat de viață rămas al pompei: ...</h2>
+      <div class="health-label">Sănătate/performanță actuală a pompei: <span id="currentHealth">...</span></div>
       <div class="health-bar">
-        <div class="health-bar-fill yellow" style="width: 53%;">265 ore</div>
+        <div id="healthBarFill" class="health-bar-fill">...</div>
       </div>
-
-      <div class="alert yellow-alert">
-        ⚠ Atenție: semne moderate de scădere a performanței.<br>
-        Pompa funcționează, dar eficiența sa a început să scadă.<br>
-        Se recomandă o verificare tehnică pentru prevenirea defecțiunii premature.
-      </div>
+      <div id="alertBox" class="alert"></div>
     </div>
   </div>
 
   <script>
-    const labels = Array.from({ length: 500 }, (_, i) => `Citirea ${i + 1}`);
-    const healthValues = labels.map(() => Math.floor(Math.random() * 25) + 75);
-    const flowValues = labels.map(() => (Math.random() * 8 + 30).toFixed(2));
-    const currentValues = labels.map(() => (Math.random() * 150 + 100).toFixed(2));
+    // Configurație Firebase
+    firebase.initializeApp({
+      apiKey: "AIzaSyB-TQ4ZBg-BD-SxloC4s-wcQXCHMgYAdpQ",
+      authDomain: "pompa-8dfcb.firebaseapp.com",
+      databaseURL: "https://pompa-8dfcb-default-rtdb.firebaseio.com/",
+      projectId: "pompa-8dfcb",
+      storageBucket: "pompa-8dfcb.appspot.com",
+      messagingSenderId: "255123251149",
+      appId: "1:255123251149:web:3ff7d58efc3bb6e93f6f15"
+    });
 
-    const minIndex = healthValues.indexOf(Math.min(...healthValues));
+    const dbRef = firebase.database().ref();
 
-    const data = {
-      labels,
-      datasets: [
-        {
-          label: '', // legenda scoasă
-          data: healthValues,
-          fill: false,
-          borderColor: '#00ffe6',
-          backgroundColor: (ctx) => ctx.dataIndex === minIndex ? '#ff0000' : '#00ffe6',
-          pointRadius: 4,
-          pointHoverRadius: 6,
-        }
-      ]
-    };
+    dbRef.on("value", (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
 
-    const config = {
-      type: 'line',
-      data: data,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const i = context.dataIndex;
-                return `Sanatate: ${healthValues[i]}% | Debit: ${flowValues[i]} L/h | Curent: ${currentValues[i]} mA`;
-              }
-            }
-          }
+      const values = Object.values(data);
+      const flow = [];
+      const current = [];
+      const health = [];
+
+      values.forEach((entry) => {
+        flow.push(entry.flow || 0);
+        current.push(entry.current || 0);
+        health.push(entry.health || 0);
+      });
+
+      const totalReadings = health.length;
+      const secondsRun = totalReadings * 30;
+      const hoursRun = secondsRun / 3600;
+
+      const minHealth = Math.min(...health);
+      const performanceLoss = ((100 - minHealth) / 100) * 500;
+      const remaining = Math.max(0, 500 - hoursRun - performanceLoss);
+
+      const hr = Math.floor(remaining);
+      const min = Math.floor((remaining - hr) * 60);
+      const sec = Math.floor((((remaining - hr) * 60) - min) * 60);
+
+      const barFill = (remaining / 500) * 100;
+      const color = remaining > 300 ? 'green' : remaining > 150 ? 'yellow' : 'red';
+
+      const alertMsg = color === 'green'
+        ? 'Pompa se află într-o stare optimă de funcționare. Performanță ridicată.'
+        : color === 'yellow'
+          ? '⚠ Atenție: semne moderate de scădere a performanței. Verificați funcționarea pompei.'
+          : '❗ Avertisment: performanță critică. Necesită întreținere imediată!';
+
+      document.getElementById("lifeTime").innerText =
+        `Timp estimat de viață rămas al pompei: ${hr} ore, ${min} minute, ${sec} secunde`;
+      document.getElementById("currentHealth").innerText = `${minHealth}%`;
+      const bar = document.getElementById("healthBarFill");
+      bar.className = `health-bar-fill ${color}`;
+      bar.style.width = `${barFill}%`;
+      bar.innerText = `${hr} ore`;
+      const alert = document.getElementById("alertBox");
+      alert.className = `alert ${color}-alert`;
+      alert.innerHTML = alertMsg;
+
+      const labels = values.map((_, i) => `Citirea ${i + 1}`);
+      const minIndex = health.indexOf(minHealth);
+
+      new Chart(document.getElementById("healthChart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "",
+            data: health,
+            fill: false,
+            borderColor: "#00ffe6",
+            backgroundColor: ctx => ctx.dataIndex === minIndex ? "#ff0000" : "#00ffe6",
+            pointRadius: 4,
+            pointHoverRadius: 6,
+          }],
         },
-        scales: {
-          y: {
-            min: 60,
-            max: 100,
-            ticks: {
-              color: '#fff',
-            },
-            title: {
-              display: true,
-              text: "Sănătate/performanță",
-              color: "#fff",
-              font: {
-                size: 14,
-                weight: 'bold'
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  const i = context.dataIndex;
+                  return `Sanatate: ${health[i]}% | Debit: ${flow[i]} L/h | Curent: ${current[i]} mA`;
+                }
               }
             }
           },
-          x: {
-            ticks: {
-              color: '#fff',
-              maxRotation: 90,
-              minRotation: 90
+          scales: {
+            y: {
+              min: 60,
+              max: 100,
+              ticks: { color: "#fff" },
+              title: {
+                display: true,
+                text: "Sănătate/performanță",
+                color: "#fff",
+                font: { size: 14, weight: "bold" }
+              }
+            },
+            x: {
+              ticks: {
+                color: "#fff",
+                maxRotation: 90,
+                minRotation: 90
+              }
             }
           }
         }
-      }
-    };
-
-    new Chart(
-      document.getElementById('healthChart'),
-      config
-    );
+      });
+    });
   </script>
 </body>
 </html>
