@@ -27,9 +27,17 @@
       text-align: center;
     }
 
+    h1 {
+      font-size: 2.5rem;
+      color: #00ffe6;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #000;
+    }
+
     .scroll-container {
       overflow-x: auto;
       padding-bottom: 10px;
+      margin-bottom: 30px;
     }
 
     .chart-wrapper {
@@ -43,7 +51,7 @@
     }
 
     .note {
-      margin: 10px 0;
+      margin: 10px 0 30px;
       color: #f1c40f;
       font-weight: bold;
       text-shadow: 1px 1px 2px #000;
@@ -54,7 +62,7 @@
       padding: 20px;
       border-radius: 15px;
       box-shadow: 0 0 20px #00ffcc55;
-      margin: 20px auto;
+      margin: 100px auto 40px;
       width: 90%;
       max-width: 700px;
     }
@@ -131,6 +139,8 @@
 </head>
 <body>
   <div class="container">
+    <h1>Pompa 1</h1>
+
     <div class="scroll-container">
       <div class="chart-wrapper">
         <canvas id="healthChart"></canvas>
