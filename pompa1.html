@@ -71,11 +71,12 @@
       <h2 id="timeRemaining">Timp estimat de viață rămas al pompei:</h2>
       <div class="health-label" id="healthLabel">Sănătate/performanță actuală a pompei: <span id="currentHealth">--%</span></div>
       <div class="health-bar">
-        <div class="health-bar-fill" id="healthFill">-- ore</div>
+        <div class="health-bar-fill" id="healthFill">--</div>
       </div>
       <div class="alert" id="healthAlert"></div>
     </div>
   </div>
+
   <script>
     const firebaseConfig = {
       databaseURL: "https://pompa-8dfcb-default-rtdb.firebaseio.com/"
@@ -86,26 +87,25 @@
 
     dbRef.once("value", (snapshot) => {
       const data = snapshot.val();
-      const timestamps = Object.keys(data)
-        .filter(k => data[k] && typeof data[k].health === 'number')
-        .sort();
+      const allTimestamps = Object.keys(data).sort((a, b) => parseInt(a) - parseInt(b));
 
-      const healthValues = [];
-      const flowValues = [];
-      const currentValues = [];
+      // Folosit pentru RUL – include și cele cu null
+      const totalReadings = allTimestamps.length;
 
-      timestamps.forEach((timestamp) => {
-        const entry = data[timestamp];
-        healthValues.push(entry.health);
-        flowValues.push(entry.flow || 0);
-        currentValues.push(entry.current || 0);
-      });
+      // Filtrat pentru grafic – doar valori valide
+      const entries = allTimestamps
+        .map(key => [key, data[key]])
+        .filter(([_, entry]) => entry && typeof entry.health === 'number');
 
-      const labels = healthValues.map((_, i) => `Citirea ${i + 1}`);
+      const healthValues = entries.map(([_, entry]) => entry.health);
+      const flowValues = entries.map(([_, entry]) => entry.flow || 0);
+      const currentValues = entries.map(([_, entry]) => entry.current || 0);
+      const labels = entries.map((_, i) => `Citirea ${i + 1}`);
+
       const minValue = Math.min(...healthValues);
       const minIndex = healthValues.indexOf(minValue);
 
-      const timeUsedSeconds = timestamps.length * 30;
+      const timeUsedSeconds = totalReadings * 30;
       const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
       const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
 
@@ -113,6 +113,7 @@
       const minutes = Math.floor((remainingSeconds % 3600) / 60);
       const seconds = Math.floor(remainingSeconds % 60);
 
+      // Actualizare texte
       document.getElementById("timeRemaining").textContent = `Timp estimat de viață rămas al pompei: ${hours} ore, ${minutes} minute, ${seconds} secunde`;
       document.getElementById("currentHealth").textContent = `${minValue.toFixed(2)}%`;
       const fill = document.getElementById("healthFill");
@@ -141,6 +142,7 @@
         alert.textContent = "❗Avertisment: performanță critică. Necesită întreținere imediată!";
       }
 
+      // Grafic
       const ctx = document.getElementById('healthChart').getContext('2d');
       new Chart(ctx, {
         type: 'line',
