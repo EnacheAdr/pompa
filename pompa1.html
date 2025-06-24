@@ -85,41 +85,31 @@
     const dbRef = db.ref();
 
     dbRef.once("value", (snapshot) => {
-      const raw = snapshot.val();
-      const sortedTimestamps = Object.keys(raw).sort(); // ensures correct chronological order
+      const data = snapshot.val();
+      const sortedEntries = Object.entries(data)
+        .filter(([_, entry]) => entry && typeof entry.health === 'number')
+        .sort(([a], [b]) => parseInt(a) - parseInt(b));
 
-      const healthValues = [];
-      const flowValues = [];
-      const currentValues = [];
-      const validIndexes = [];
+      const healthValues = sortedEntries.map(([_, entry]) => entry.health);
+      const flowValues = sortedEntries.map(([_, entry]) => entry.flow || 0);
+      const currentValues = sortedEntries.map(([_, entry]) => entry.current || 0);
+      const labels = sortedEntries.map((_, i) => `Citirea ${i + 1}`);
 
-      sortedTimestamps.forEach((timestamp, index) => {
-        const entry = raw[timestamp];
-        if (entry && typeof entry.health === 'number') {
-          healthValues.push(entry.health);
-          flowValues.push(entry.flow || 0);
-          currentValues.push(entry.current || 0);
-          validIndexes.push(index);
-        }
-      });
-
-      const labels = healthValues.map((_, i) => `Citirea ${i + 1}`);
       const minValue = Math.min(...healthValues);
       const minIndex = healthValues.indexOf(minValue);
-      const lastValue = healthValues[healthValues.length - 1];
-
-      const timeUsedSeconds = sortedTimestamps.length * 30;
-      const performanceDropSeconds = ((100 - lastValue) / 100) * 500 * 3600;
+      const timeUsedSeconds = Object.keys(data).length * 30;
+      const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
       const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
 
-      const h = Math.floor(remainingSeconds / 3600);
-      const m = Math.floor((remainingSeconds % 3600) / 60);
-      const s = Math.floor(remainingSeconds % 60);
+      const hours = Math.floor(remainingSeconds / 3600);
+      const minutes = Math.floor((remainingSeconds % 3600) / 60);
+      const seconds = Math.floor(remainingSeconds % 60);
 
-      document.getElementById("timeRemaining").textContent = `Timp estimat de viață rămas al pompei: ${h} ore, ${m} minute, ${s} secunde`;
-      document.getElementById("currentHealth").textContent = `${lastValue.toFixed(2)}%`;
+      document.getElementById("timeRemaining").textContent =
+        `Timp estimat de viață rămas al pompei: ${hours} ore, ${minutes} minute, ${seconds} secunde`;
+      document.getElementById("currentHealth").textContent = `${minValue.toFixed(2)}%`;
       const fill = document.getElementById("healthFill");
-      fill.textContent = `${h} ore, ${m} minute, ${s} secunde`;
+      fill.textContent = `${hours} ore, ${minutes} minute, ${seconds} secunde`;
 
       const label = document.getElementById("healthLabel");
       const alert = document.getElementById("healthAlert");
@@ -129,19 +119,19 @@
         label.style.backgroundColor = '#2ecc71';
         label.style.color = '#000';
         alert.className = "alert green-alert";
-        alert.textContent = "✅ Pompa funcționează în parametri optimi.";
+        alert.textContent = "✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă.";
       } else if (remainingSeconds >= 150 * 3600) {
         fill.className = "health-bar-fill yellow";
         label.style.backgroundColor = '#f1c40f';
         label.style.color = '#000';
         alert.className = "alert yellow-alert";
-        alert.textContent = "⚠ Atenție: performanța scade moderat.";
+        alert.textContent = "⚠ Atenție: semne moderate de scădere a performanței. Se recomandă o verificare tehnică.";
       } else {
         fill.className = "health-bar-fill red";
         label.style.backgroundColor = '#e74c3c';
         label.style.color = '#fff';
         alert.className = "alert red-alert";
-        alert.textContent = "❗Avertisment: performanță critică!";
+        alert.textContent = "❗Avertisment: performanță critică. Necesită întreținere imediată!";
       }
 
       const ctx = document.getElementById('healthChart').getContext('2d');
