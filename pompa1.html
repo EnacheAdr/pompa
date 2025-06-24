@@ -84,18 +84,20 @@
     .yellow { color: #f1c40f; }
     .red { color: #e74c3c; }
 
-    .chart-container {
+    .chart-wrapper {
       width: 100%;
       overflow-x: auto;
-      margin-top: 2rem;
-      margin-bottom: 0.5rem;
+    }
+
+    .chart-container {
+      width: 100%;
+      min-width: 1000px;
       background-color: rgba(0, 0, 0, 0.6);
       padding: 1rem;
       border-radius: 15px;
     }
 
     #chartPerformance {
-      min-width: 1200px;
       height: 300px;
     }
 
@@ -103,16 +105,25 @@
       font-size: 0.95rem;
       color: #f1c40f;
       text-align: center;
-      margin-bottom: 2rem;
+      margin-top: 0.5rem;
+    }
+
+    .chart-slider {
+      width: 90%;
+      margin: 0.5rem auto 2rem;
     }
   </style>
 </head>
 <body>
 
-  <div class="chart-container">
-    <canvas id="chartPerformance"></canvas>
+  <div class="chart-wrapper" id="chartScroll">
+    <div class="chart-container">
+      <canvas id="chartPerformance"></canvas>
+    </div>
   </div>
-  <div class="scroll-hint">❗ Pentru o vizualizare completă, derulați spre dreapta în grafic.</div>
+
+  <input type="range" min="0" max="100" value="0" class="chart-slider" id="chartSlider">
+  <div class="scroll-hint">❗ Pentru o vizualizare completă, utilizați bara de derulare de mai sus.</div>
 
   <div class="rul-section">
     <div class="rul-title" id="rulText">Timp estimat de viață rămas al pompei: ...</div>
@@ -217,6 +228,14 @@
           }
         }
       }
+    });
+
+    // ===================== SLIDER CONTROL SCROLL =====================
+    const slider = document.getElementById('chartSlider');
+    const scrollDiv = document.getElementById('chartScroll');
+    slider.addEventListener('input', () => {
+      const maxScroll = scrollDiv.scrollWidth - scrollDiv.clientWidth;
+      scrollDiv.scrollLeft = (slider.value / 100) * maxScroll;
     });
   </script>
 
