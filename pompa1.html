@@ -86,18 +86,27 @@
 
     dbRef.once("value", (snapshot) => {
       const data = snapshot.val();
-      const sortedEntries = Object.entries(data)
-        .filter(([_, entry]) => entry && typeof entry.health === 'number')
-        .sort(([a], [b]) => parseInt(a) - parseInt(b));
+      const timestamps = Object.keys(data).sort(); // asigură ordinea cronologică
 
-      const healthValues = sortedEntries.map(([_, entry]) => entry.health);
-      const flowValues = sortedEntries.map(([_, entry]) => entry.flow || 0);
-      const currentValues = sortedEntries.map(([_, entry]) => entry.current || 0);
-      const labels = sortedEntries.map((_, i) => `Citirea ${i + 1}`);
+      const healthValues = [];
+      const flowValues = [];
+      const currentValues = [];
 
+      timestamps.forEach((timestamp) => {
+        const entry = data[timestamp];
+        if (entry && typeof entry.health === 'number') {
+          healthValues.push(entry.health);
+          flowValues.push(entry.flow || 0);
+          currentValues.push(entry.current || 0);
+        }
+      });
+
+      const labels = healthValues.map((_, i) => `Citirea ${i + 1}`);
       const minValue = Math.min(...healthValues);
       const minIndex = healthValues.indexOf(minValue);
-      const timeUsedSeconds = Object.keys(data).length * 30;
+
+      const totalReadings = timestamps.length;
+      const timeUsedSeconds = totalReadings * 30;
       const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
       const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
 
@@ -105,8 +114,7 @@
       const minutes = Math.floor((remainingSeconds % 3600) / 60);
       const seconds = Math.floor(remainingSeconds % 60);
 
-      document.getElementById("timeRemaining").textContent =
-        `Timp estimat de viață rămas al pompei: ${hours} ore, ${minutes} minute, ${seconds} secunde`;
+      document.getElementById("timeRemaining").textContent = `Timp estimat de viață rămas al pompei: ${hours} ore, ${minutes} minute, ${seconds} secunde`;
       document.getElementById("currentHealth").textContent = `${minValue.toFixed(2)}%`;
       const fill = document.getElementById("healthFill");
       fill.textContent = `${hours} ore, ${minutes} minute, ${seconds} secunde`;
