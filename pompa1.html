@@ -71,7 +71,7 @@
       <h2 id="timeRemaining">Timp estimat de viață rămas al pompei:</h2>
       <div class="health-label" id="healthLabel">Sănătate/performanță actuală a pompei: <span id="currentHealth">--%</span></div>
       <div class="health-bar">
-        <div class="health-bar-fill" id="healthFill">--</div>
+        <div class="health-bar-fill" id="healthFill">-- ore</div>
       </div>
       <div class="alert" id="healthAlert"></div>
     </div>
@@ -86,45 +86,32 @@
 
     dbRef.once("value", (snapshot) => {
       const data = snapshot.val();
-
-      const sortedKeys = Object.keys(data)
-        .filter(key => !isNaN(Date.parse(key))) // valid timestamp check
-        .sort((a, b) => new Date(a) - new Date(b));
+      const entries = Object.entries(data).sort((a, b) => new Date(a[0]) - new Date(b[0]));
 
       const healthValues = [];
       const flowValues = [];
       const currentValues = [];
       const labels = [];
 
-      let minValue = null;
-      let minIndex = -1;
+      let allHealths = [];
 
-      sortedKeys.forEach((timestamp, index) => {
-        const entry = data[timestamp];
+      entries.forEach(([timestamp, entry], i) => {
         if (entry && typeof entry.health === 'number') {
+          labels.push(`Citirea ${i + 1}`);
           healthValues.push(entry.health);
           flowValues.push(entry.flow || 0);
           currentValues.push(entry.current || 0);
-          labels.push(`Citirea ${healthValues.length}`);
-          if (minValue === null || entry.health < minValue) {
-            minValue = entry.health;
-            minIndex = healthValues.length - 1;
-          }
+        }
+        if (entry && typeof entry.health === 'number') {
+          allHealths.push(entry.health);
         }
       });
 
-      // time calculations include all entries (valid or not)
-      const timeUsedSeconds = sortedKeys.length * 30;
+      const minValue = Math.min(...allHealths);
+      const minIndex = healthValues.indexOf(minValue);
+      const validReadings = entries.filter(([_, entry]) => entry && entry.health !== null);
 
-      if (minValue === null) {
-        document.getElementById("timeRemaining").textContent = "Eroare: niciuna dintre citiri nu conține valori valide de sănătate.";
-        document.getElementById("currentHealth").textContent = "--%";
-        document.getElementById("healthFill").textContent = "--";
-        document.getElementById("healthLabel").style.backgroundColor = "#f1c40f";
-        document.getElementById("healthAlert").textContent = "⚠ Nu există suficiente date pentru a genera o estimare.";
-        return;
-      }
-
+      const timeUsedSeconds = entries.length * 30;
       const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
       const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
 
