@@ -6,197 +6,221 @@
   <title>Status Pompa</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       font-family: 'Orbitron', sans-serif;
-      background-image: url('imaginea2.webp');
+      background: url('imaginea2.webp') no-repeat center center fixed;
       background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+      color: white;
       overflow-x: hidden;
     }
 
     .container {
+      max-width: 1000px;
+      margin: 0 auto;
       padding: 20px;
       text-align: center;
-      color: white;
     }
 
-    .graf-wrapper {
+    .scroll-container {
       overflow-x: auto;
-      max-width: 100%;
-      margin: auto;
       padding-bottom: 10px;
     }
 
-    .graf-canvas {
-      min-width: 3000px;
-      max-width: none;
+    .chart-wrapper {
+      width: 2000px;
+      height: 300px;
     }
 
-    .slider-wrapper {
-      margin: 10px auto 0 auto;
+    #healthChart {
       width: 100%;
-      max-width: 1200px;
+      height: 100%;
     }
 
-    .slider {
-      width: 100%;
+    .note {
+      margin: 10px 0;
+      color: #f1c40f;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px #000;
     }
 
-    .info-box {
-      margin-top: 20px;
+    .life-box {
       background-color: rgba(0, 0, 0, 0.75);
       padding: 20px;
       border-radius: 15px;
-      display: inline-block;
+      box-shadow: 0 0 20px #00ffcc55;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 700px;
     }
 
-    .rul-bar {
-      width: 100%;
-      max-width: 500px;
-      height: 20px;
-      background-color: #333;
+    .life-box h2 {
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+      color: #00ffe6;
+      text-shadow: 0 0 10px #000;
+    }
+
+    .health-bar {
+      height: 30px;
+      background: #444;
       border-radius: 10px;
       overflow: hidden;
-      margin: 10px auto;
+      margin: 10px 0;
       position: relative;
     }
 
-    .rul-fill {
+    .health-bar-fill {
       height: 100%;
       text-align: center;
-      color: black;
       font-weight: bold;
-      line-height: 20px;
+      color: white;
+      line-height: 30px;
     }
 
-    .performance-label {
+    .health-bar.green {
+      background-color: #2ecc71;
+    }
+
+    .health-bar.yellow {
+      background-color: #f1c40f;
+    }
+
+    .health-bar.red {
+      background-color: #e74c3c;
+    }
+
+    .health-label {
       font-weight: bold;
-      font-size: 1.1rem;
-      margin-top: 10px;
-      background-color: gold;
-      color: black;
+      margin-bottom: 8px;
+      color: #fff;
+      background: #222;
       display: inline-block;
       padding: 5px 10px;
       border-radius: 10px;
     }
 
-    .alert-message {
-      margin-top: 20px;
-      font-size: 1rem;
-      font-weight: bold;
-      background-color: rgba(0, 0, 0, 0.7);
+    .alert {
+      margin-top: 15px;
       padding: 10px;
       border-radius: 10px;
-    }
-
-    .alert-green {
-      color: #2ecc71;
-    }
-
-    .alert-yellow {
-      color: #f1c40f;
-    }
-
-    .alert-red {
-      color: #e74c3c;
-    }
-
-    .scroll-tip {
-      margin-top: 5px;
-      color: orange;
+      font-size: 1rem;
       font-weight: bold;
+    }
+
+    .green-alert {
+      background-color: #2ecc71;
+      color: #000;
+    }
+
+    .yellow-alert {
+      background-color: #f1c40f;
+      color: #000;
+    }
+
+    .red-alert {
+      background-color: #e74c3c;
+      color: #fff;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="graf-wrapper" id="grafContainer">
-      <canvas id="healthChart" class="graf-canvas"></canvas>
-    </div>
-    <div class="slider-wrapper">
-      <input type="range" min="0" max="100" value="0" class="slider" id="scrollSlider">
-    </div>
-    <div class="scroll-tip">❗ Pentru o vizualizare completă, utilizați bara de derulare de mai sus.</div>
-
-    <div class="info-box">
-      <h2 id="rulTime">Timp estimat de viață rămas al pompei: 265 ore, 0 minute, 0 secunde</h2>
-      <div class="performance-label">Sănătate/performanță actuală a pompei: 71%</div>
-      <div class="rul-bar">
-        <div class="rul-fill" id="rulFill" style="width: 53%; background-color: #f1c40f;">&nbsp;</div>
+    <div class="scroll-container">
+      <div class="chart-wrapper">
+        <canvas id="healthChart"></canvas>
       </div>
-      <div class="alert-message alert-yellow">
+    </div>
+
+    <p class="note">⚠ Pentru o vizualizare completă, utilizați bara de derulare de mai sus.</p>
+
+    <div class="life-box">
+      <h2>Timp estimat de viață rămas al pompei: 265 ore, 0 minute, 0 secunde</h2>
+
+      <div class="health-label">Sănătate/performanță actuală a pompei: <span id="currentHealth">71%</span></div>
+
+      <div class="health-bar">
+        <div class="health-bar-fill yellow" style="width: 53%;">265 ore</div>
+      </div>
+
+      <div class="alert yellow-alert">
         ⚠ Atenție: semne moderate de scădere a performanței. <br>
         Pompa funcționează, dar eficiența sa a început să scadă. <br>
-        Se recomandă o verificare tehnică pentru prevenirea defectării premature.
+        Se recomandă o verificare tehnică pentru prevenirea defecțiunii premature.
       </div>
     </div>
   </div>
 
   <script>
-    const healthData = Array.from({length: 500}, (_, i) => 100 - Math.random() * 25);
-    const flowData = Array.from({length: 500}, () => (30 + Math.random() * 8).toFixed(2));
-    const currentData = Array.from({length: 500}, () => (150 + Math.random() * 30).toFixed(2));
-    const minHealth = Math.min(...healthData);
-    const minIndex = healthData.indexOf(minHealth);
+    const labels = Array.from({ length: 500 }, (_, i) => `Citirea ${i + 1}`);
+    const healthValues = labels.map(() => Math.floor(Math.random() * 25) + 75);
+    const flowValues = labels.map(() => (Math.random() * 8 + 30).toFixed(2));
+    const currentValues = labels.map(() => (Math.random() * 150 + 100).toFixed(2));
 
-    const chart = new Chart(document.getElementById('healthChart').getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: Array.from({length: 500}, (_, i) => `Citirea ${i + 1}`),
-        datasets: [{
+    const minIndex = healthValues.indexOf(Math.min(...healthValues));
+
+    const data = {
+      labels,
+      datasets: [
+        {
           label: 'Sănătate pompa (%)',
-          data: healthData,
-          borderColor: '#00f7ff',
-          backgroundColor: 'rgba(0, 247, 255, 0.1)',
-          tension: 0.2,
+          data: healthValues,
+          fill: false,
+          borderColor: '#00ffe6',
+          backgroundColor: (ctx) => ctx.dataIndex === minIndex ? '#ff0000' : '#00ffe6',
           pointRadius: 4,
           pointHoverRadius: 6,
-          fill: false,
-          pointBackgroundColor: (ctx) => ctx.dataIndex === minIndex ? '#e74c3c' : '#00f7ff'
-        }]
-      },
-      options: {
-        responsive: false,
-        plugins: {
-          legend: {
-            labels: {
-              color: 'white'
-            }
+          segment: {
+            borderDash: (ctx) => ctx.p0.skip || ctx.p1.skip ? [6, 6] : undefined,
           },
+        }
+      ]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
           tooltip: {
             callbacks: {
               label: function(context) {
                 const i = context.dataIndex;
-                return [
-                  `Sănătate: ${healthData[i].toFixed(2)}%`,
-                  `Debit: ${flowData[i]} L/h`,
-                  `Curent: ${currentData[i]} mA`
-                ];
+                return `Sanatate: ${healthValues[i]}% | Debit: ${flowValues[i]} L/h | Curent: ${currentValues[i]} mA`;
               }
             }
           }
         },
         scales: {
-          x: {
-            ticks: { color: 'white' }
-          },
           y: {
-            beginAtZero: true,
+            min: 60,
             max: 100,
-            ticks: { color: 'white' }
+            ticks: {
+              color: '#fff',
+            }
+          },
+          x: {
+            ticks: {
+              color: '#fff',
+              maxRotation: 90,
+              minRotation: 90
+            }
           }
         }
       }
-    });
+    };
 
-    const slider = document.getElementById('scrollSlider');
-    const grafContainer = document.getElementById('grafContainer');
-    slider.addEventListener('input', () => {
-      const scrollWidth = grafContainer.scrollWidth - grafContainer.clientWidth;
-      grafContainer.scrollLeft = (slider.value / 100) * scrollWidth;
-    });
+    new Chart(
+      document.getElementById('healthChart'),
+      config
+    );
   </script>
 </body>
 </html>
