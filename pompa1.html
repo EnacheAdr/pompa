@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Status Pompa</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Orbitron', sans-serif;
       background: url('imaginea2.webp') no-repeat center center fixed;
@@ -15,61 +16,22 @@
       color: white;
       overflow-x: hidden;
     }
-
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 20px;
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      color: #00ffe6;
-      margin-bottom: 10px;
-      text-shadow: 0 0 10px #000;
-    }
-
-    .scroll-container {
-      overflow-x: auto;
-      padding-bottom: 10px;
-      margin-bottom: 20px;
-    }
-
-    .chart-wrapper {
-      width: 2000px;
-      height: 300px;
-    }
-
-    canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    .note {
-      color: #f1c40f;
-      font-weight: bold;
-      text-shadow: 1px 1px 2px #000;
-      margin-bottom: 30px;
-    }
-
+    .container { max-width: 1000px; margin: 0 auto; padding: 20px; text-align: center; }
+    h1 { font-size: 2.5rem; color: #00ffe6; margin-bottom: 20px; text-shadow: 0 0 10px #000; }
+    .scroll-container { overflow-x: auto; padding-bottom: 10px; margin-bottom: 30px; }
+    .chart-wrapper { width: 2000px; height: 300px; }
+    #healthChart { width: 100%; height: 100%; }
+    .note { margin: 10px 0 30px; color: #f1c40f; font-weight: bold; text-shadow: 1px 1px 2px #000; }
     .life-box {
       background-color: rgba(0, 0, 0, 0.75);
       padding: 20px;
       border-radius: 15px;
       box-shadow: 0 0 20px #00ffcc55;
-      margin: 40px auto;
+      margin: 100px auto 40px;
       width: 90%;
       max-width: 700px;
     }
-
-    .life-box h2 {
-      font-size: 1.6rem;
-      margin-bottom: 10px;
-      color: #00ffe6;
-      text-shadow: 0 0 10px #000;
-    }
-
+    .life-box h2 { font-size: 1.6rem; margin-bottom: 10px; color: #00ffe6; text-shadow: 0 0 10px #000; }
     .health-label {
       font-weight: bold;
       margin-bottom: 8px;
@@ -79,15 +41,7 @@
       padding: 5px 10px;
       border-radius: 10px;
     }
-
-    .health-bar {
-      height: 30px;
-      background: #444;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 10px 0;
-    }
-
+    .health-bar { height: 30px; background: #444; border-radius: 10px; overflow: hidden; margin: 10px 0; position: relative; }
     .health-bar-fill {
       height: 100%;
       text-align: center;
@@ -95,130 +49,103 @@
       color: white;
       line-height: 30px;
     }
-
     .green { background-color: #2ecc71; }
     .yellow { background-color: #f1c40f; }
     .red { background-color: #e74c3c; }
-
-    .alert {
-      margin-top: 15px;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: bold;
-    }
-
+    .alert { margin-top: 15px; padding: 10px; border-radius: 10px; font-size: 1rem; font-weight: bold; }
     .green-alert { background-color: #2ecc71; color: #000; }
     .yellow-alert { background-color: #f1c40f; color: #000; }
     .red-alert { background-color: #e74c3c; color: #fff; }
-
-    .legend {
-      color: white;
-      margin-bottom: 10px;
-    }
-
-    .legend span {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      background-color: red;
-      border-radius: 50%;
-      margin-right: 5px;
-    }
-
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Pompa 1</h1>
-    <div class="legend"><span></span> Sănătate/performanță actuală a pompei</div>
-
     <div class="scroll-container">
       <div class="chart-wrapper">
         <canvas id="healthChart"></canvas>
       </div>
     </div>
-
     <p class="note">⚠ Pentru o vizualizare completă, utilizați bara de derulare de mai sus.</p>
-
     <div class="life-box">
-      <h2 id="timeEstimation">Timp estimat de viață rămas al pompei: ...</h2>
+      <h2 id="timeRemaining">Timp estimat de viață rămas al pompei:</h2>
       <div class="health-label">Sănătate/performanță actuală a pompei: <span id="currentHealth">--%</span></div>
       <div class="health-bar">
-        <div id="healthBarFill" class="health-bar-fill">-- ore</div>
+        <div class="health-bar-fill" id="healthFill">-- ore</div>
       </div>
-      <div id="statusAlert" class="alert"></div>
+      <div class="alert" id="healthAlert"></div>
     </div>
   </div>
-
   <script>
     const firebaseConfig = {
       databaseURL: "https://pompa-8dfcb-default-rtdb.firebaseio.com/"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const dbRef = db.ref();
 
-    db.ref().once("value").then(snapshot => {
+    dbRef.once("value", (snapshot) => {
       const data = snapshot.val();
-      const keys = Object.keys(data);
-      const labels = [];
-      const health = [];
-      const flow = [];
-      const current = [];
+      const timestamps = Object.keys(data);
+      const healthValues = [];
+      const flowValues = [];
+      const currentValues = [];
 
-      keys.forEach((key, index) => {
-        if (data[key].health !== undefined) {
-          labels.push(`Citirea ${index + 1}`);
-          health.push(Number(data[key].health));
-          flow.push(data[key].flow);
-          current.push(data[key].current);
+      timestamps.forEach((timestamp) => {
+        const entry = data[timestamp];
+        if (entry && typeof entry.health === 'number') {
+          healthValues.push(entry.health);
+          flowValues.push(entry.flow || 0);
+          currentValues.push(entry.current || 0);
         }
       });
 
-      const minHealth = Math.min(...health);
-      const minIndex = health.indexOf(minHealth);
+      const labels = healthValues.map((_, i) => `Citirea ${i + 1}`);
+      const minValue = Math.min(...healthValues);
+      const minIndex = healthValues.indexOf(minValue);
 
-      // === Timp de viață ===
-      const durataTotalaOre = 500;
-      const durataSecunde = durataTotalaOre * 3600;
-      const timpFunctionare = labels.length * 30;
-      const pierdere = ((100 - minHealth) / 100) * durataSecunde;
-      const timpRamas = Math.max(0, durataSecunde - timpFunctionare - pierdere);
-      const ore = Math.floor(timpRamas / 3600);
-      const minute = Math.floor((timpRamas % 3600) / 60);
-      const secunde = Math.floor(timpRamas % 60);
+      const timeUsedSeconds = timestamps.length * 30;
+      const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
+      const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
 
-      // === Stilizare ===
-      const fillClass = minHealth >= 85 ? 'green' : minHealth >= 60 ? 'yellow' : 'red';
-      const mesaj =
-        minHealth >= 85
-          ? "✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă."
-          : minHealth >= 60
-            ? "⚠ Atenție: scădere moderată a performanței. Se recomandă verificare tehnică."
-            : "❗ Avertisment: performanță critică. Necesită întreținere imediată!";
+      const hours = Math.floor(remainingSeconds / 3600);
+      const minutes = Math.floor((remainingSeconds % 3600) / 60);
+      const seconds = Math.floor(remainingSeconds % 60);
 
-      // === Setare UI ===
-      document.getElementById("currentHealth").textContent = minHealth.toFixed(2) + "%";
-      document.getElementById("healthBarFill").style.width = `${ore / 5}%`;
-      document.getElementById("healthBarFill").textContent = `${ore} ore`;
-      document.getElementById("healthBarFill").className = `health-bar-fill ${fillClass}`;
-      document.getElementById("timeEstimation").textContent = `Timp estimat de viață rămas al pompei: ${ore} ore, ${minute} minute, ${secunde} secunde`;
-      document.getElementById("statusAlert").textContent = mesaj;
-      document.getElementById("statusAlert").className = `alert ${fillClass}-alert`;
+      document.getElementById("timeRemaining").textContent = `Timp estimat de viață rămas al pompei: ${hours} ore, ${minutes} minute, ${seconds} secunde`;
+      document.getElementById("currentHealth").textContent = `${minValue.toFixed(2)}%`;
+      const fill = document.getElementById("healthFill");
+      fill.textContent = `${hours} ore`;
 
-      // === Chart.js ===
-      new Chart(document.getElementById("healthChart"), {
+      if (minValue >= 85) {
+        fill.className = "health-bar-fill green";
+        document.getElementById("healthAlert").className = "alert green-alert";
+        document.getElementById("healthAlert").textContent = "✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă.";
+      } else if (minValue >= 70) {
+        fill.className = "health-bar-fill yellow";
+        document.getElementById("healthAlert").className = "alert yellow-alert";
+        document.getElementById("healthAlert").textContent = "⚠ Atenție: semne moderate de scădere a performanței. Se recomandă o verificare tehnică.";
+      } else {
+        fill.className = "health-bar-fill red";
+        document.getElementById("healthAlert").className = "alert red-alert";
+        document.getElementById("healthAlert").textContent = "❗Avertisment: performanță critică. Necesită întreținere imediată!";
+      }
+
+      const ctx = document.getElementById('healthChart').getContext('2d');
+      new Chart(ctx, {
         type: 'line',
         data: {
-          labels,
+          labels: labels,
           datasets: [{
-            label: "Sănătate pompa (%)",
-            data: health,
-            borderColor: "#00ffe6",
-            backgroundColor: (_, i) => i.dataIndex === minIndex ? "#ff0000" : "#00ffe6",
+            label: 'Sănătate pompa (%)',
+            data: healthValues,
+            fill: false,
+            borderColor: '#00ffe6',
+            backgroundColor: function(ctx) {
+              return ctx.dataIndex === minIndex ? '#ff0000' : '#00ffe6';
+            },
             pointRadius: 4,
-            pointHoverRadius: 6,
-            fill: false
+            pointHoverRadius: 6
           }]
         },
         options: {
@@ -227,9 +154,21 @@
           plugins: {
             tooltip: {
               callbacks: {
-                label: ctx => {
-                  const i = ctx.dataIndex;
-                  return `Sănătate: ${health[i]}% | Debit: ${flow[i]} L/h | Curent: ${current[i]} mA`;
+                label: function(context) {
+                  const i = context.dataIndex;
+                  return `Sănătate: ${healthValues[i]}% | Debit: ${flowValues[i]} L/h | Curent: ${currentValues[i]} mA`;
+                }
+              }
+            },
+            legend: {
+              labels: {
+                generateLabels: function() {
+                  return [{
+                    text: '🔴 Sănătate/performanță actuală a pompei',
+                    fillStyle: '#ff0000',
+                    strokeStyle: '#ff0000',
+                    lineWidth: 1
+                  }];
                 }
               }
             }
@@ -238,19 +177,15 @@
             y: {
               min: 60,
               max: 100,
+              ticks: { color: '#fff' },
               title: {
                 display: true,
-                text: "Sănătate/performanță",
-                color: "#fff"
-              },
-              ticks: { color: "#fff" }
+                text: 'Sănătate/performanță (%)',
+                color: '#fff'
+              }
             },
             x: {
-              ticks: {
-                color: "#fff",
-                maxRotation: 90,
-                minRotation: 90
-              }
+              ticks: { color: '#fff', maxRotation: 90, minRotation: 90 }
             }
           }
         }
