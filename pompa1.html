@@ -82,47 +82,61 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const dbRef = db.ref();
 
-    db.ref().once("value", (snapshot) => {
-      const rawData = snapshot.val();
-      const timestamps = Object.keys(rawData).sort();
+    dbRef.once("value", (snapshot) => {
+      const data = snapshot.val();
 
-      const validEntries = timestamps.map(ts => rawData[ts]).filter(entry => typeof entry.health === 'number');
-      const allEntries = timestamps.map(ts => rawData[ts]);
+      // SORTARE REALĂ PE TIMESTAMP (numeric)
+      const sortedKeys = Object.keys(data)
+        .map(ts => parseInt(ts))
+        .sort((a, b) => a - b);
 
-      const healthValues = validEntries.map(e => e.health);
-      const flowValues = validEntries.map(e => e.flow || 0);
-      const currentValues = validEntries.map(e => e.current || 0);
+      const healthValues = [];
+      const flowValues = [];
+      const currentValues = [];
+      const allEntries = [];
 
-      const labels = validEntries.map((_, i) => `Citirea ${i + 1}`);
+      sortedKeys.forEach((timestamp) => {
+        const entry = data[timestamp];
+        if (entry) allEntries.push(entry);
+        if (entry && typeof entry.health === 'number') {
+          healthValues.push(entry.health);
+          flowValues.push(entry.flow || 0);
+          currentValues.push(entry.current || 0);
+        }
+      });
 
+      const labels = healthValues.map((_, i) => `Citirea ${i + 1}`);
       const minValue = Math.min(...healthValues);
       const minIndex = healthValues.indexOf(minValue);
 
-      const timeUsedSeconds = allEntries.length * 30;
-      const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
-      const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
+      // TIMP TOTAL -> toate citirile, chiar și cele cu null
+      const totalSeconds = sortedKeys.length * 30;
+      const degradSeconds = ((100 - minValue) / 100) * 500 * 3600;
+      const remaining = Math.max(0, 500 * 3600 - totalSeconds - degradSeconds);
 
-      const hours = Math.floor(remainingSeconds / 3600);
-      const minutes = Math.floor((remainingSeconds % 3600) / 60);
-      const seconds = Math.floor(remainingSeconds % 60);
+      const h = Math.floor(remaining / 3600);
+      const m = Math.floor((remaining % 3600) / 60);
+      const s = Math.floor(remaining % 60);
 
-      document.getElementById("timeRemaining").textContent = `Timp estimat de viață rămas al pompei: ${hours} ore, ${minutes} minute, ${seconds} secunde`;
+      document.getElementById("timeRemaining").textContent =
+        `Timp estimat de viață rămas al pompei: ${h} ore, ${m} minute, ${s} secunde`;
       document.getElementById("currentHealth").textContent = `${minValue.toFixed(2)}%`;
 
       const fill = document.getElementById("healthFill");
-      fill.textContent = `${hours} ore, ${minutes} minute, ${seconds} secunde`;
+      fill.textContent = `${h} ore, ${m} minute, ${s} secunde`;
 
       const label = document.getElementById("healthLabel");
       const alert = document.getElementById("healthAlert");
 
-      if (remainingSeconds >= 300 * 3600) {
+      if (remaining >= 300 * 3600) {
         fill.className = "health-bar-fill green";
         label.style.backgroundColor = '#2ecc71';
         label.style.color = '#000';
         alert.className = "alert green-alert";
         alert.textContent = "✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă.";
-      } else if (remainingSeconds >= 150 * 3600) {
+      } else if (remaining >= 150 * 3600) {
         fill.className = "health-bar-fill yellow";
         label.style.backgroundColor = '#f1c40f';
         label.style.color = '#000';
@@ -136,6 +150,7 @@
         alert.textContent = "❗Avertisment: performanță critică. Necesită întreținere imediată!";
       }
 
+      // CHART
       const ctx = document.getElementById('healthChart').getContext('2d');
       new Chart(ctx, {
         type: 'line',
@@ -146,7 +161,9 @@
             data: healthValues,
             fill: false,
             borderColor: '#00ffe6',
-            backgroundColor: (ctx) => ctx.dataIndex === minIndex ? '#ff0000' : '#00ffe6',
+            backgroundColor: function(ctx) {
+              return ctx.dataIndex === minIndex ? '#ff0000' : '#00ffe6';
+            },
             pointRadius: 4,
             pointHoverRadius: 6
           }]
