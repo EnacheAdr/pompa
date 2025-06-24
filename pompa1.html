@@ -85,7 +85,7 @@
     .red { color: #e74c3c; }
 
     .chart-container {
-      width: 90vw;
+      width: 100%;
       overflow-x: auto;
       margin-top: 2rem;
       margin-bottom: 0.5rem;
@@ -95,7 +95,7 @@
     }
 
     #chartPerformance {
-      min-width: 1000px;
+      min-width: 1200px;
       height: 300px;
     }
 
@@ -162,7 +162,15 @@
     // ===================== GRAFIC SIMULAT =====================
     const ctx = document.getElementById('chartPerformance').getContext('2d');
     const labels = Array.from({ length: 100 }, (_, i) => `Citirea ${i + 1}`);
-    const healthData = labels.map((_, i) => 100 - Math.pow(i / 5, 1.2));
+    const dataSimulata = labels.map((_, i) => {
+      return {
+        x: i + 1,
+        y: 100 - Math.pow(i / 5, 1.2),
+        debit: (36 + Math.random()).toFixed(2),
+        curent: (70 + Math.random() * 2).toFixed(2),
+        sanatate: (100 - Math.pow(i / 5, 1.2)).toFixed(2)
+      };
+    });
 
     new Chart(ctx, {
       type: 'line',
@@ -170,7 +178,7 @@
         labels: labels,
         datasets: [{
           label: 'Sănătate pompa (%)',
-          data: healthData,
+          data: dataSimulata.map(e => e.y),
           borderColor: '#00ffcc',
           backgroundColor: 'rgba(0,255,204,0.1)',
           tension: 0.3,
@@ -186,25 +194,25 @@
           y: {
             suggestedMin: 60,
             suggestedMax: 100,
-            ticks: {
-              color: 'white'
-            }
+            ticks: { color: 'white' }
           },
           x: {
-            ticks: {
-              color: 'white'
-            }
+            ticks: { color: 'white' }
           }
         },
         plugins: {
-          legend: {
-            labels: {
-              color: 'white'
-            }
-          },
+          legend: { labels: { color: 'white' } },
           tooltip: {
             callbacks: {
-              label: (context) => `Sănătate: ${context.parsed.y.toFixed(2)}%`
+              label: function(context) {
+                const i = context.dataIndex;
+                const point = dataSimulata[i];
+                return [
+                  `Debit: ${point.debit} L/h`,
+                  `Curent: ${point.curent} mA`,
+                  `Sănătate: ${point.sanatate} %`
+                ];
+              }
             }
           }
         }
