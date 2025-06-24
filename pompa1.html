@@ -86,17 +86,17 @@
 
     dbRef.once("value", (snapshot) => {
       const data = snapshot.val();
-      const timestamps = Object.keys(data);
+      const sortedKeys = Object.keys(data);
       const healthValues = [];
       const flowValues = [];
       const currentValues = [];
 
-      timestamps.forEach((timestamp) => {
-        const entry = data[timestamp];
+      sortedKeys.forEach((key) => {
+        const entry = data[key];
         if (entry && typeof entry.health === 'number') {
           healthValues.push(entry.health);
-          flowValues.push(entry.flow || 0);
-          currentValues.push(entry.current || 0);
+          flowValues.push(entry.flow ?? 0);
+          currentValues.push(entry.current ?? 0);
         }
       });
 
@@ -104,7 +104,8 @@
       const minValue = Math.min(...healthValues);
       const minIndex = healthValues.indexOf(minValue);
 
-      const timeUsedSeconds = timestamps.length * 30;
+      const totalReadings = sortedKeys.length;
+      const timeUsedSeconds = totalReadings * 30;
       const performanceDropSeconds = ((100 - minValue) / 100) * 500 * 3600;
       const remainingSeconds = Math.max(0, 500 * 3600 - timeUsedSeconds - performanceDropSeconds);
 
@@ -117,11 +118,11 @@
       const fill = document.getElementById("healthFill");
       fill.textContent = `${hours} ore`;
 
-      if (minValue >= 85) {
+      if (remainingSeconds >= 300 * 3600) {
         fill.className = "health-bar-fill green";
         document.getElementById("healthAlert").className = "alert green-alert";
         document.getElementById("healthAlert").textContent = "✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă.";
-      } else if (minValue >= 70) {
+      } else if (remainingSeconds >= 100 * 3600) {
         fill.className = "health-bar-fill yellow";
         document.getElementById("healthAlert").className = "alert yellow-alert";
         document.getElementById("healthAlert").textContent = "⚠ Atenție: semne moderate de scădere a performanței. Se recomandă o verificare tehnică.";
@@ -137,7 +138,7 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'Sănătate pompa (%)',
+            label: '',
             data: healthValues,
             fill: false,
             borderColor: '#00ffe6',
