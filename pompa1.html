@@ -110,11 +110,15 @@
 
     // Functii START / STOP pompa
     function startPump() {
-      db.child("pompa").set(true);
+      db.child("control/command").set("start")
+        .then(()=>console.log("Comandă START trimisă"))
+        .catch(e=>console.error("Eroare la START:",e));
     }
 
     function stopPump() {
-      db.child("pompa").set(false);
+      db.child("control/command").set("stop")
+        .then(()=>console.log("Comandă STOP trimisă"))
+        .catch(e=>console.error("Eroare la STOP:",e));
     }
 
     db.once("value",snap=>{
