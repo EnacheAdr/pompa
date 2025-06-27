@@ -43,34 +43,22 @@
     .green-alert{background:#2ecc71;color:#000}.yellow-alert{background:#f1c40f;color:#000}.red-alert{background:#e74c3c;color:#fff}
 
     /* Butoane fixate jos */
-    .btn-start {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      padding: 12px 20px;
-      background: #2ecc71;
-      color: black;
-      font-weight: bold;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      box-shadow: 0 0 10px #000;
-      cursor: pointer;
+    .btn-start{
+      position:fixed;bottom:20px;left:20px;padding:12px 20px;
+      background:#2ecc71;color:black;font-weight:bold;border:none;border-radius:10px;
+      font-size:16px;box-shadow:0 0 10px #000;cursor:pointer;
+    }
+    .btn-stop{
+      position:fixed;bottom:20px;right:20px;padding:12px 20px;
+      background:#e74c3c;color:white;font-weight:bold;border:none;border-radius:10px;
+      font-size:16px;box-shadow:0 0 10px #000;cursor:pointer;
     }
 
-    .btn-stop {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 12px 20px;
-      background: #e74c3c;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      box-shadow: 0 0 10px #000;
-      cursor: pointer;
+    /* Mesaj avertizare între butoane */
+    .msg-fixed{
+      position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
+      background:#f1c40f;color:#000;padding:10px 20px;border-radius:12px;
+      font-weight:bold;box-shadow:0 0 10px #000;text-align:center;
     }
   </style>
 </head>
@@ -102,96 +90,110 @@
   <button class="btn-start" onclick="startPump()">🟢 START</button>
   <button class="btn-stop" onclick="stopPump()">🔴 STOP</button>
 
+  <!-- Mesaj fix între butoane -->
+  <p class="msg-fixed">
+    ⚠️ Se recomandă funcționarea pompei în regim 5 minute ON / 5 minute OFF și în sesiuni multiple de 30 de secunde!
+  </p>
+
   <script>
     /* ---- Config Firebase ---- */
-    const firebaseConfig={databaseURL:"https://pompa-8dfcb-default-rtdb.firebaseio.com/"};
+    const firebaseConfig = { databaseURL: "https://pompa-8dfcb-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
-    const db=firebase.database().ref();
+    const db = firebase.database().ref();
 
     // Functii START / STOP pompa
     function startPump() {
       db.child("control/command").set("start")
-        .then(()=>console.log("Comandă START trimisă"))
-        .catch(e=>console.error("Eroare la START:",e));
+        .then(() => console.log("Comandă START trimisă"))
+        .catch(e => console.error("Eroare la START:", e));
     }
 
     function stopPump() {
       db.child("control/command").set("stop")
-        .then(()=>console.log("Comandă STOP trimisă"))
-        .catch(e=>console.error("Eroare la STOP:",e));
+        .then(() => console.log("Comandă STOP trimisă"))
+        .catch(e => console.error("Eroare la STOP:", e));
     }
 
-    db.once("value",snap=>{
-      const data=snap.val();
-      const ts=Object.keys(data).sort();
-      const labels=[],hVals=[],flow=[],curr=[];
-      let minH=Infinity,minPos=-1,total=0;
+    db.once("value", snap => {
+      const data = snap.val();
+      const ts = Object.keys(data).sort();
+      const labels = [], hVals = [], flow = [], curr = [];
+      let minH = Infinity, minPos = -1, total = 0;
 
-      ts.forEach((t)=>{
+      ts.forEach(t => {
         total++;
-        const e=data[t],hNum=(e?.health!=null && !isNaN(+e.health))?+e.health:null;
-        if(hNum!==null){
-          labels.push(`Citirea ${labels.length+1}`);
+        const e = data[t], hNum = (e?.health != null && !isNaN(+e.health)) ? +e.health : null;
+        if (hNum !== null) {
+          labels.push(`Citirea ${labels.length + 1}`);
           hVals.push(hNum);
-          flow.push(+e.flow||0);
-          curr.push(+e.current||0);
-          if(hNum<minH){minH=hNum;minPos=hVals.length-1;}
+          flow.push(+e.flow || 0);
+          curr.push(+e.current || 0);
+          if (hNum < minH) { minH = hNum; minPos = hVals.length - 1; }
         }
       });
 
       /* RUL */
-      const used=total*30;
-      const drop=((100-minH)/100)*500*3600;
-      const rem=Math.max(0,500*3600-used-drop);
-      const h=Math.floor(rem/3600),m=Math.floor((rem%3600)/60),s=Math.floor(rem%60);
+      const used = total * 30;
+      const drop = ((100 - minH) / 100) * 500 * 3600;
+      const rem = Math.max(0, 500 * 3600 - used - drop);
+      const h = Math.floor(rem / 3600), m = Math.floor((rem % 3600) / 60), s = Math.floor(rem % 60);
 
-      document.getElementById("timeRemaining").textContent=`Timp estimat de viață rămas al pompei: ${h} ore, ${m} minute, ${s} secunde`;
-      document.getElementById("currentHealth").textContent=`${minH.toFixed(2)}%`;
-      const fill=document.getElementById("healthFill");
-      fill.textContent=`${h} ore, ${m} minute, ${s} secunde`;
+      document.getElementById("timeRemaining").textContent =
+        `Timp estimat de viață rămas al pompei: ${h} ore, ${m} minute, ${s} secunde`;
+      document.getElementById("currentHealth").textContent = `${minH.toFixed(2)}%`;
+      const fill = document.getElementById("healthFill");
+      fill.textContent = `${h} ore, ${m} minute, ${s} secunde`;
 
-      const lbl=document.getElementById("healthLabel"),alert=document.getElementById("healthAlert");
-      if(rem>=300*3600){
-        fill.className="health-bar-fill green";
-        lbl.style.background='#2ecc71';lbl.style.color='#000';
-        alert.className="alert green-alert";
-        alert.textContent="✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă.";
-      } else if(rem>=150*3600){
-        fill.className="health-bar-fill yellow";
-        lbl.style.background='#f1c40f';lbl.style.color='#000';
-        alert.className="alert yellow-alert";
-        alert.textContent="⚠ Atenție: semne moderate de scădere a performanței. Se recomandă o verificare tehnică.";
+      /* Ajustează lățimea în funcție de procentele rămase */
+      const percent = (rem / (500 * 3600)) * 100;
+      fill.style.width = percent.toFixed(1) + "%";
+
+      const lbl = document.getElementById("healthLabel"), alert = document.getElementById("healthAlert");
+      if (rem >= 300 * 3600) {
+        fill.className = "health-bar-fill green";
+        lbl.style.background = '#2ecc71'; lbl.style.color = '#000';
+        alert.className = "alert green-alert";
+        alert.textContent = "✅ Pompa funcționează în parametri optimi. Nu sunt semne de uzură semnificativă.";
+      } else if (rem >= 150 * 3600) {
+        fill.className = "health-bar-fill yellow";
+        lbl.style.background = '#f1c40f'; lbl.style.color = '#000';
+        alert.className = "alert yellow-alert";
+        alert.textContent = "⚠ Atenție: semne moderate de scădere a performanței. Se recomandă o verificare tehnică.";
       } else {
-        fill.className="health-bar-fill red";
-        lbl.style.background='#e74c3c';lbl.style.color='#fff';
-        alert.className="alert red-alert";
-        alert.textContent="❗Avertisment: performanță critică. Necesită întreținere imediată!";
+        fill.className = "health-bar-fill red";
+        lbl.style.background = '#e74c3c'; lbl.style.color = '#fff';
+        alert.className = "alert red-alert";
+        alert.textContent = "❗Avertisment: performanță critică. Necesită întreținere imediată!";
       }
 
       /* Grafic */
-      new Chart(document.getElementById('healthChart').getContext('2d'),{
-        type:'line',
-        data:{
+      new Chart(document.getElementById('healthChart').getContext('2d'), {
+        type: 'line',
+        data: {
           labels,
-          datasets:[{
-            data:hVals,
-            fill:false,
-            borderColor:'#00ffe6',
-            pointBackgroundColor:hVals.map((v,i)=>i===minPos?'#ff0000':'#00ffe6'),
-            pointRadius:4,
-            pointHoverRadius:6
+          datasets: [{
+            data: hVals,
+            fill: false,
+            borderColor: '#00ffe6',
+            pointBackgroundColor: hVals.map((v, i) => i === minPos ? '#ff0000' : '#00ffe6'),
+            pointRadius: 4,
+            pointHoverRadius: 6
           }]
         },
-        options:{
-          responsive:true,
-          maintainAspectRatio:false,
-          plugins:{
-            legend:{display:false},
-            tooltip:{callbacks:{label:c=>`Sănătate: ${hVals[c.dataIndex]}% | Debit: ${flow[c.dataIndex]} L/h | Curent: ${curr[c.dataIndex]} mA`}}
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: c => `Sănătate: ${hVals[c.dataIndex]}% | Debit: ${flow[c.dataIndex]} L/h | Curent: ${curr[c.dataIndex]} mA`
+              }
+            }
           },
-          scales:{
-            y:{min:60,max:100,ticks:{color:'#fff'},title:{display:true,text:'Sănătate/performanță (%)',color:'#fff'}},
-            x:{ticks:{color:'#fff',maxRotation:90,minRotation:90}}
+          scales: {
+            y: { min: 60, max: 100, ticks: { color: '#fff' }, title: { display: true, text: 'Sănătate/performanță (%)', color: '#fff' } },
+            x: { ticks: { color: '#fff', maxRotation: 90, minRotation: 90 } }
           }
         }
       });
