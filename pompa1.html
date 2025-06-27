@@ -20,20 +20,30 @@
     .container{max-width:1000px;margin:0 auto;padding:20px;text-align:center}
     h1{font-size:2.5rem;color:#00ffe6;margin-bottom:10px;text-shadow:0 0 10px #000}
 
-    /* legenda sub titlu */
     .legend-custom{display:flex;justify-content:center;align-items:center;margin-bottom:15px;font-size:.9rem}
     .legend-dot{width:10px;height:10px;border-radius:50%;background:#ff0000;margin-right:6px}
 
-    /* grafic */
     .scroll-container{overflow-x:auto;padding-bottom:10px;margin-bottom:30px}
     .chart-wrapper{width:2000px;height:300px;position:relative}
     #healthChart{width:100%;height:100%}
 
-    /* text sub grafic */
-    .note{margin:10px 0 30px;color:#f1c40f;font-weight:bold;text-shadow:1px 1px 2px #000}
+    .note{margin:10px 0 15px;color:#f1c40f;font-weight:bold;text-shadow:1px 1px 2px #000}
 
-    /* caseta RUL */
-    .life-box{background:rgba(0,0,0,.75);padding:20px;border-radius:15px;box-shadow:0 0 20px #00ffcc55;margin:100px auto 40px;width:90%;max-width:700px}
+    /* mesaj galben fixat între grafic și life-box */
+    .msg-fixed{
+      background:#f1c40f;
+      color:#000;
+      padding:10px 20px;
+      border-radius:12px;
+      font-weight:bold;
+      box-shadow:0 0 10px #000;
+      text-align:center;
+      margin:0 auto 30px;
+      width:90%;
+      max-width:700px;
+    }
+
+    .life-box{background:rgba(0,0,0,.75);padding:20px;border-radius:15px;box-shadow:0 0 20px #00ffcc55;margin:40px auto;width:90%;max-width:700px}
     .life-box h2{font-size:1.6rem;margin-bottom:10px;color:#00ffe6;text-shadow:0 0 10px #000}
     .health-label{font-weight:bold;margin-bottom:8px;display:inline-block;padding:5px 10px;border-radius:10px;background:#f1c40f;color:#000}
     .health-bar{height:30px;background:#444;border-radius:10px;overflow:hidden;margin:10px 0}
@@ -42,7 +52,6 @@
     .alert{margin-top:15px;padding:10px;border-radius:10px;font-weight:bold}
     .green-alert{background:#2ecc71;color:#000}.yellow-alert{background:#f1c40f;color:#000}.red-alert{background:#e74c3c;color:#fff}
 
-    /* Butoane fixate jos */
     .btn-start{
       position:fixed;bottom:20px;left:20px;padding:12px 20px;
       background:#2ecc71;color:black;font-weight:bold;border:none;border-radius:10px;
@@ -53,30 +62,13 @@
       background:#e74c3c;color:white;font-weight:bold;border:none;border-radius:10px;
       font-size:16px;box-shadow:0 0 10px #000;cursor:pointer;
     }
-
-    /* Mesaj avertizare între butoane */
-    .msg-fixed{
-      position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
-      background:#f1c40f;color:#000;padding:10px 20px;border-radius:12px;
-      font-weight:bold;box-shadow:0 0 10px #000;text-align:center;
-    }
-
-    @media (max-width: 600px) {
-      .msg-fixed {
-        bottom: 100px !important;
-        font-size: 0.85rem;
-        padding: 8px 14px;
-      }
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Pompa 1</h1>
-    <!-- legenda cu cerc rosu sub titlu -->
     <div class="legend-custom"><span class="legend-dot"></span>Sănătate/performanță actuală a pompei</div>
 
-    <!-- Grafic -->
     <div class="scroll-container">
       <div class="chart-wrapper">
         <canvas id="healthChart"></canvas>
@@ -85,7 +77,11 @@
 
     <p class="note">⚠ Pentru o vizualizare completă, utilizați bara de derulare de mai sus.</p>
 
-    <!-- Box RUL -->
+    <!-- 🔧 Mesaj galben fixat logic între grafic și RUL -->
+    <p class="msg-fixed">
+      ⚠️ Se recomandă funcționarea pompei în regim 5 minute ON / 5 minute OFF și în sesiuni multiple de 30 de secunde!
+    </p>
+
     <div class="life-box">
       <h2 id="timeRemaining">Timp estimat de viață rămas al pompei:</h2>
       <div class="health-label" id="healthLabel">Sănătate/performanță actuală a pompei: <span id="currentHealth">--%</span></div>
@@ -94,14 +90,8 @@
     </div>
   </div>
 
-  <!-- Butoane colțuri jos -->
   <button class="btn-start" onclick="startPump()">🟢 START POMPĂ</button>
   <button class="btn-stop" onclick="stopPump()">🔴 STOP POMPĂ</button>
-
-  <!-- Mesaj fix între butoane -->
-  <p class="msg-fixed">
-    ⚠️ Se recomandă funcționarea pompei în regim 5 minute ON / 5 minute OFF și în sesiuni multiple de 30 de secunde!
-  </p>
 
   <script>
     const firebaseConfig = { databaseURL: "https://pompa-8dfcb-default-rtdb.firebaseio.com/" };
