@@ -60,6 +60,14 @@
       background:#f1c40f;color:#000;padding:10px 20px;border-radius:12px;
       font-weight:bold;box-shadow:0 0 10px #000;text-align:center;
     }
+
+    @media (max-width: 600px) {
+      .msg-fixed {
+        bottom: 100px !important;
+        font-size: 0.85rem;
+        padding: 8px 14px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -96,12 +104,10 @@
   </p>
 
   <script>
-    /* ---- Config Firebase ---- */
     const firebaseConfig = { databaseURL: "https://pompa-8dfcb-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database().ref();
 
-    // Functii START / STOP pompa
     function startPump() {
       db.child("control/command").set("start")
         .then(() => console.log("Comandă START trimisă"))
@@ -132,7 +138,6 @@
         }
       });
 
-      /* RUL */
       const used = total * 30;
       const drop = ((100 - minH) / 100) * 500 * 3600;
       const rem = Math.max(0, 500 * 3600 - used - drop);
@@ -144,7 +149,6 @@
       const fill = document.getElementById("healthFill");
       fill.textContent = `${h} ore, ${m} minute, ${s} secunde`;
 
-      /* Ajustează lățimea în funcție de procentele rămase */
       const percent = (rem / (500 * 3600)) * 100;
       fill.style.width = percent.toFixed(1) + "%";
 
@@ -166,7 +170,6 @@
         alert.textContent = "❗Avertisment: performanță critică. Necesită întreținere imediată!";
       }
 
-      /* Grafic */
       new Chart(document.getElementById('healthChart').getContext('2d'), {
         type: 'line',
         data: {
