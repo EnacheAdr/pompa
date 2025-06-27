@@ -114,7 +114,7 @@
         .catch(e => console.error("Eroare la STOP:", e));
     }
 
-    db.once("value", snap => {
+    db.on("value", snap => {
       const data = snap.val();
       const ts = Object.keys(data).sort();
       const labels = [], hVals = [], flow = [], curr = [];
